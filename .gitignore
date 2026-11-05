@@ -1,0 +1,12 @@
+# Login details: these give full access to a Telegram account
+.tg_credentials.json
+*.session
+*.session-journal
+
+# Personal chat data
+chats.json
+folders.json
+
+.venv/
+__pycache__/
+.DS_Store
