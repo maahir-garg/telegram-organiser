@@ -4,9 +4,13 @@ Create Telegram chat folders in bulk from a JSON file, instead of adding chats o
 
 It exports your chat list, you decide which chats go in which folder, and it creates the folders. It never reads or exports messages.
 
+## Status
+
+A small personal tool in a single script, `tg.py`, with no tests. It talks to Telegram as your own user account through the [Telethon](https://github.com/LonamiWebs/Telethon) library (pinned to 1.45.0 in `requirements.txt`), not through a bot token.
+
 ## Setup
 
-You need Python 3.9 or newer and your own Telegram API ID and hash:
+You need Python 3 (the README was written against 3.9 or newer; the version is not enforced in the code) and your own Telegram API ID and hash:
 
 1. Sign in at [my.telegram.org](https://my.telegram.org).
 2. Open **API development tools** and create an app.
@@ -34,14 +38,13 @@ python3 -m venv .venv
 .venv/bin/python tg.py export
 ```
 
-**3. Write `folders.json`** using IDs from `chats.json`. A chat can be in more than one folder. `emoticon` is optional.
+**3. Write `folders.json`** using IDs from `chats.json`. A chat can be in more than one folder. `emoticon` is an optional single emoji shown on the folder; `folders.example.json` has a sample.
 
 ```json
 {
   "folders": [
     {
       "title": "Uni",
-      "emoticon": "🎓",
       "chat_ids": [-1001234567890, -1009876543210]
     }
   ]
@@ -66,6 +69,10 @@ python3 -m venv .venv
 .venv/bin/python tg.py logout
 ```
 
+## How it works
+
+`tg.py` is one script with four subcommands. `login` runs Telethon's interactive sign-in and saves the API ID and hash to `.tg_credentials.json` and the session to `tg_session.session`. `export` lists your dialogs and existing folders (it requests `GetDialogFiltersRequest` and iterates dialogs, and reads no message text). `apply` loads `folders.json`, checks it, and sends one `UpdateDialogFilterRequest` per folder, using the first free folder IDs from 2 upward and pausing one second between requests.
+
 ## Limits
 
 | | Free | Premium |
@@ -73,12 +80,13 @@ python3 -m venv .venv
 | Folders, including existing ones | 10 | 20 |
 | Chats per folder | 100 | 200 |
 
-Folder names can be up to 12 characters.
+Folder names can be up to 12 characters. These limits are the constants in `tg.py`; Telegram may change them, and `apply` does not read them from Telegram. The Premium column is used when the logged-in account is Premium.
 
 ## Behaviour
 
 - Existing folders are never changed. If a new folder has the same name as an existing one, `apply` stops before changing anything.
 - Folders contain the chats you list. Rule-based folders, such as "all groups", aren't supported.
+- `apply` needs every chat ID in `folders.json` to appear in your current chat list, and it refuses a folder with no chats.
 - To undo, delete the folder in Telegram. Its chats stay in your chat list.
 
 ## Security
